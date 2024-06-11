@@ -9,6 +9,7 @@ import {
 import { UserRole } from 'src/enums/role.enum';
 import { Post } from 'src/posts/entities/post.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
@@ -22,6 +23,7 @@ export class User {
   email: string;
 
   @Column({ nullable: false })
+  @Exclude()
   password: string;
 
   @Column({
@@ -38,9 +40,13 @@ export class User {
   @DeleteDateColumn()
   deletedAt?: Date;
 
+  @Column({ nullable: true })
+  @Exclude()
+  currentHashedRefreshToken?: string;
+
   @OneToMany(() => Post, (post) => post.author, { cascade: true })
-  posts: Post[];
+  posts?: Post[];
 
   @OneToMany(() => Comment, (comment) => comment.author, { cascade: true })
-  comments: Comment[];
+  comments?: Comment[];
 }
