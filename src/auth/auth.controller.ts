@@ -13,9 +13,10 @@ import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import RequestWithUser from './interface/requestWithUser.interface';
-import { Response } from 'express';
+import { Response, response } from 'express';
 import { LocalAuthenticationGuard } from './localAuthentication.guard';
 import JwtAuthGuard from './jwt-auth.guard';
+import JwtRefreshGuard from './jwt-refresh.guard';
 
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -53,5 +54,17 @@ export class AuthController {
     await this.usersService.removeRefreshToken(request.user.id);
     response.setHeader('Set-Cookie', this.authService.getCookieForLogOut());
     response.sendStatus(200);
+  }
+
+  @UseGuards(JwtRefreshGuard)
+  @Post('refresh')
+  async restoreAccessToken(
+    @Req() request: RequestWithUser,
+    @Res() response: Response,
+  ) {
+    const accessToken = await this.authService.generateAccessToken(
+      request.user.id,
+    );
+    response.send({ accessToken });
   }
 }

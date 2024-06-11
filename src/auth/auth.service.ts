@@ -44,23 +44,28 @@ export class AuthService {
 
   async generateAccessToken(userId: number) {
     const payload: JwtPayload = { userId };
+    const secret = this.configService.get('JWT_ACCESS_TOKEN_SECRET');
+    const expiresIn = this.configService.get(
+      'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
+    );
 
-    const accessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-      expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`,
+    return this.jwtService.sign(payload, {
+      secret,
+      expiresIn: `${expiresIn}s`,
     });
-    return accessToken;
   }
 
   async generateRefreshToken(userId: number) {
     const payload: JwtPayload = { userId };
-    const token = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-      expiresIn: `${this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')}s`,
-    });
-    const cookie = `Refresh=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get(
+    const secret = this.configService.get('JWT_REFRESH_TOKEN_SECRET');
+    const expiresIn = this.configService.get(
       'JWT_REFRESH_TOKEN_EXPIRATION_TIME',
-    )}`;
+    );
+    const token = this.jwtService.sign(payload, {
+      secret,
+      expiresIn: `${expiresIn}s`,
+    });
+    const cookie = `Refresh=${token}; HttpOnly; Path=/; Max-Age=${expiresIn};`;
     return { cookie, token };
   }
 

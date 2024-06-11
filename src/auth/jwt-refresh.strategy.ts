@@ -7,7 +7,7 @@ import { UsersService } from 'src/users/users.service';
 import JwtPayload from './interface/payload.interface';
 
 @Injectable()
-export class jwtRefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
@@ -15,7 +15,7 @@ export class jwtRefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
-          return request?.cookies?.refreshToken;
+          return request?.cookies?.Refresh;
         },
       ]),
       secretOrKey: configService.get('JWT_REFRESH_TOKEN_SECRET'),
@@ -24,7 +24,7 @@ export class jwtRefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
   }
 
   async validate(req: Request, payload: JwtPayload) {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.cookies?.Refresh;
     const user = await this.usersService.getUserIfRefreshTokenMatches(
       refreshToken,
       payload.userId,
