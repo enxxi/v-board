@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from 'src/auth/dto/register.dto';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +22,7 @@ export class UsersService {
   async findUserById(id: number) {
     const user = await this.usersRepository.findUserById(id);
     if (user) {
-      return user;
+      return plainToClass(User, user);
     }
     throw new HttpException('해당 id의 유저가 없습니다.', HttpStatus.NOT_FOUND);
   }
@@ -49,7 +50,7 @@ export class UsersService {
     );
 
     if (isRefreshTokenMatching) {
-      return user;
+      return plainToClass(User, user);
     }
   }
 

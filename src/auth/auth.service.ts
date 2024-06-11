@@ -7,6 +7,8 @@ import { ConfigService } from '@nestjs/config';
 import { UsersRepository } from 'src/users/users.repository';
 import { MysqlErrorCode } from 'src/database/MysqlErrorCodes.enum';
 import JwtPayload from './interface/payload.interface';
+import { plainToClass } from 'class-transformer';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -73,7 +75,7 @@ export class AuthService {
     try {
       const user = await this.usersService.findUserByEmail(email);
       await this.verifyPassword(password, user.password);
-      return user;
+      return plainToClass(User, user);
     } catch (error) {
       throw new HttpException(
         '이메일 혹은 비밀번호가 잘못되었습니다.',
