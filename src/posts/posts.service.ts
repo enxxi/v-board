@@ -8,6 +8,7 @@ import PostNotFoundException from './postNotFound.exception';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { UserRole } from 'src/common/enums/role.enum';
 import { CategoryType } from 'src/common/enums/category.enum';
+import { Post } from './entities/post.entity';
 
 @Injectable()
 export class PostsService {
@@ -21,9 +22,7 @@ export class PostsService {
       post.categoryId,
     );
 
-    if (category.name === CategoryType.NOTICE && user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('관리자 권한이 필요합니다.');
-    }
+    this.checkAdminPermission(category.name, user.role);
 
     const newPost = await this.postsRepository.create({
       ...post,
@@ -31,8 +30,7 @@ export class PostsService {
       author: user,
     });
 
-    await this.postsRepository.save(newPost);
-    return newPost;
+    return await this.postsRepository.save(newPost);
   }
 
   async getPosts() {
@@ -41,32 +39,34 @@ export class PostsService {
 
   async getPostDetail(id: number) {
     const post = await this.postsRepository.getPostDetail(id);
-    if (post) {
-      return post;
+    if (!post) {
+      throw new PostNotFoundException(id);
     }
-    throw new PostNotFoundException(id);
+    return post;
   }
 
   async updatePost(id: number, data: UpdatePostDto, user: User) {
     const post = await this.getPostDetail(id);
-    if (
-      post.category.name === CategoryType.NOTICE &&
-      user.role !== UserRole.ADMIN
-    ) {
-      throw new ForbiddenException('관리자 권한이 필요합니다.');
-    }
-
+    this.checkAdminOrAuthorPermission(post, user);
     return await this.postsRepository.update(id, data);
   }
 
   async deletePost(id: number, user: User) {
     const post = await this.getPostDetail(id);
-    if (
-      post.category.name === CategoryType.NOTICE &&
-      user.role !== UserRole.ADMIN
-    ) {
+    this.checkAdminOrAuthorPermission(post, user);
+
+    return await this.postsRepository.softDelete({ id });
+  }
+
+  private checkAdminPermission(category: string, role: string) {
+    if (category === CategoryType.NOTICE && role !== UserRole.ADMIN) {
       throw new ForbiddenException('관리자 권한이 필요합니다.');
     }
-    return await this.postsRepository.softDelete({ id });
+  }
+
+  private checkAdminOrAuthorPermission(post: Post, user: User) {
+    if (post.author.id !== user.id && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('게시글 삭제 권한이 없습니다.');
+    }
   }
 }
