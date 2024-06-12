@@ -5,7 +5,7 @@ import { PublicFile } from './publicFile.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([PublicFile])],
-  //   controllers: [PostsController],
   providers: [FilesService],
+  exports: [FilesService],
 })
 export class FilesModule {}

@@ -7,7 +7,7 @@ import {
   Param,
   Patch,
   Post,
-  Req,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -18,6 +18,7 @@ import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import FindOneParams from 'src/common/findOneParams';
 import { UpdatePostDto } from './dto/updatePost.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('posts')
 @UseGuards(JwtAuthGuard)
@@ -26,8 +27,13 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  async createPost(@Body() post: CreatePostDto, @GetUser() user: User) {
-    return await this.postsService.createPost(post, user);
+  @UseInterceptors(FilesInterceptor('files', 10))
+  async createPost(
+    @Body() post: CreatePostDto,
+    @UploadedFiles() files: Express.Multer.File[],
+    @GetUser() user: User,
+  ) {
+    return await this.postsService.createPost(post, user, files);
   }
 
   @Get()
@@ -41,12 +47,14 @@ export class PostsController {
   }
 
   @Patch(':id')
+  @UseInterceptors(FilesInterceptor('files', 10))
   async updatePost(
     @Param() { id }: FindOneParams,
     @Body() post: UpdatePostDto,
+    @UploadedFiles() files: Express.Multer.File[],
     @GetUser() user: User,
   ) {
-    return this.postsService.updatePost(+id, post, user);
+    return this.postsService.updatePost(+id, post, user, files);
   }
 
   @Delete(':id')
