@@ -1,6 +1,7 @@
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import { Category } from 'src/categories/category.entity';
+import { CategoryType } from 'src/common/enums/category.enum';
 
 export default class CategorySeeder implements Seeder {
   public async run(
@@ -10,10 +11,10 @@ export default class CategorySeeder implements Seeder {
     const repository = dataSource.getRepository(Category);
     await repository.insert([
       {
-        name: 'notice',
+        name: CategoryType.NOTICE,
       },
-      { name: 'qna' },
-      { name: 'inquiry' },
+      { name: CategoryType.QNA },
+      { name: CategoryType.INQUIRY },
     ]);
   }
 }

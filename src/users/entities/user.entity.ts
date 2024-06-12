@@ -6,7 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UserRole } from 'src/enums/role.enum';
+import { UserRole } from 'src/common/enums/role.enum';
 import { Post } from 'src/posts/entities/post.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
 import { Exclude } from 'class-transformer';

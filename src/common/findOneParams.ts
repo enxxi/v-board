@@ -1,4 +1,4 @@
-import { IsInt, IsNumberString, IsPositive } from 'class-validator';
+import { IsInt, IsPositive } from 'class-validator';
 
 class FindOneParams {
   @IsInt()
