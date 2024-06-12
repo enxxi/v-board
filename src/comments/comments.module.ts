@@ -1,13 +1,16 @@
 import { Module } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CommentsController } from './comments.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Comment } from './entities/comment.entity';
-import { Post } from 'src/posts/entities/post.entity';
-import { User } from 'src/users/entities/user.entity';
+import { TypeOrmExModule } from 'src/database/custorm-repository.module';
+import { PostsRepository } from 'src/posts/posts.repository';
+import { CommentsRepository } from './comments.repository';
+import { PostsModule } from 'src/posts/posts.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Comment])],
+  imports: [
+    TypeOrmExModule.forCustomRepository([PostsRepository, CommentsRepository]),
+    PostsModule,
+  ],
   controllers: [CommentsController],
   providers: [CommentsService],
 })

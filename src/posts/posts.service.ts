@@ -138,7 +138,7 @@ export class PostsService {
 
   private checkAdminOrAuthorPermission(post: Post, user: User) {
     if (post.author.id !== user.id && user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('게시글 삭제 권한이 없습니다.');
+      throw new ForbiddenException('권한이 없습니다.');
     }
   }
 

@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from 'src/auth/dto/register.dto';
 import { plainToClass } from 'class-transformer';
+import UserNotFoundException from './userNotFound.exception';
 
 @Injectable()
 export class UsersService {
@@ -24,7 +25,7 @@ export class UsersService {
     if (user) {
       return plainToClass(User, user);
     }
-    throw new HttpException('해당 id의 유저가 없습니다.', HttpStatus.NOT_FOUND);
+    throw new UserNotFoundException(id);
   }
 
   async findUserByEmail(email: string) {
