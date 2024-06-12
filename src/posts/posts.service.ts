@@ -1,12 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/createPost.dto';
 import { User } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PostsRepository } from './posts.repository';
 import { CategoriesService } from 'src/categories/categories.service';
-import { NotFoundError } from 'rxjs';
 import PostNotFoundException from './postNotFound.exception';
 import { UpdatePostDto } from './dto/updatePost.dto';
+import { UserRole } from 'src/common/enums/role.enum';
+import { CategoryType } from 'src/common/enums/category.enum';
 
 @Injectable()
 export class PostsService {
@@ -19,6 +20,10 @@ export class PostsService {
     const category = await this.categoriesService.findCategoryById(
       post.categoryId,
     );
+
+    if (category.name === CategoryType.NOTICE && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('관리자 권한이 필요합니다.');
+    }
 
     const newPost = await this.postsRepository.create({
       ...post,
@@ -42,17 +47,26 @@ export class PostsService {
     throw new PostNotFoundException(id);
   }
 
-  async updatePost(id: number, post: UpdatePostDto) {
-    const updatedPost = await this.postsRepository.update(id, post);
-    if (!updatedPost.affected) {
-      throw new PostNotFoundException(id);
+  async updatePost(id: number, data: UpdatePostDto, user: User) {
+    const post = await this.getPostDetail(id);
+    if (
+      post.category.name === CategoryType.NOTICE &&
+      user.role !== UserRole.ADMIN
+    ) {
+      throw new ForbiddenException('관리자 권한이 필요합니다.');
     }
+
+    return await this.postsRepository.update(id, data);
   }
 
-  async deletePost(id: number) {
-    const deletedPost = await this.postsRepository.softDelete({ id });
-    if (!deletedPost.affected) {
-      throw new PostNotFoundException(id);
+  async deletePost(id: number, user: User) {
+    const post = await this.getPostDetail(id);
+    if (
+      post.category.name === CategoryType.NOTICE &&
+      user.role !== UserRole.ADMIN
+    ) {
+      throw new ForbiddenException('관리자 권한이 필요합니다.');
     }
+    return await this.postsRepository.softDelete({ id });
   }
 }

@@ -13,8 +13,8 @@ import {
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/createPost.dto';
-import JwtAuthGuard from 'src/auth/jwt-auth.guard';
-import { GetUser } from 'src/common/get-user.decorator';
+import JwtAuthGuard from 'src/auth/guards/jwt-auth.guard';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import FindOneParams from 'src/common/findOneParams';
 import { UpdatePostDto } from './dto/updatePost.dto';
@@ -44,12 +44,13 @@ export class PostsController {
   async updatePost(
     @Param() { id }: FindOneParams,
     @Body() post: UpdatePostDto,
+    @GetUser() user: User,
   ) {
-    return this.postsService.updatePost(+id, post);
+    return this.postsService.updatePost(+id, post, user);
   }
 
   @Delete(':id')
-  async deletePost(@Param() { id }: FindOneParams) {
-    return this.postsService.deletePost(+id);
+  async deletePost(@Param() { id }: FindOneParams, @GetUser() user: User) {
+    return this.postsService.deletePost(+id, user);
   }
 }
