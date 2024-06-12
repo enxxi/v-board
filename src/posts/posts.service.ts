@@ -57,8 +57,31 @@ export class PostsService {
     });
   }
 
-  async getPosts() {
-    return this.postsRepository.getPosts();
+  async getPosts(
+    sortBy?: string,
+    duration?: string,
+    offset?: number,
+    limit?: number,
+  ) {
+    return this.postsRepository.getPosts(sortBy, duration, offset, limit);
+  }
+
+  async searchPosts(
+    keyword: string,
+    type: string,
+    sortBy?: string,
+    duration?: string,
+    offset?: number,
+    limit?: number,
+  ) {
+    return this.postsRepository.getPosts(
+      sortBy,
+      duration,
+      offset,
+      limit,
+      keyword,
+      type,
+    );
   }
 
   async getPostDetail(id: number) {
@@ -66,6 +89,9 @@ export class PostsService {
     if (!post) {
       throw new PostNotFoundException(id);
     }
+
+    await this.postsRepository.increment({ id }, 'viewCount', 1);
+
     return post;
   }
 

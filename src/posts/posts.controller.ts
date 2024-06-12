@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -19,6 +20,9 @@ import { User } from 'src/users/entities/user.entity';
 import FindOneParams from 'src/common/findOneParams';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { PaginationParams } from 'src/common/paginationParams';
+import { SortParams } from 'src/common/sortParams';
+import { SearchParams } from 'src/common/searchParams';
 
 @Controller('posts')
 @UseGuards(JwtAuthGuard)
@@ -37,8 +41,27 @@ export class PostsController {
   }
 
   @Get()
-  async getPosts() {
-    return await this.postsService.getPosts();
+  async getPosts(
+    @Query() { sortBy, duration }: SortParams,
+    @Query() { offset, limit }: PaginationParams,
+  ) {
+    return await this.postsService.getPosts(sortBy, duration, offset, limit);
+  }
+
+  @Get('search')
+  async searchPosts(
+    @Query() { keyword, type }: SearchParams,
+    @Query() { sortBy, duration }: SortParams,
+    @Query() { offset, limit }: PaginationParams,
+  ) {
+    return await this.postsService.searchPosts(
+      keyword,
+      type,
+      sortBy,
+      duration,
+      offset,
+      limit,
+    );
   }
 
   @Get(':id')
