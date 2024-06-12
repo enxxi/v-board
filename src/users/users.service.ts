@@ -67,4 +67,8 @@ export class UsersService {
       currentHashedRefreshToken: null,
     });
   }
+
+  async saveUser(user: User) {
+    return this.usersRepository.save(user);
+  }
 }

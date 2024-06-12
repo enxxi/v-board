@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Req } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  Req,
+} from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
@@ -9,6 +15,7 @@ import { MysqlErrorCode } from 'src/database/MysqlErrorCodes.enum';
 import JwtPayload from './interface/payload.interface';
 import { plainToClass } from 'class-transformer';
 import { User } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +36,7 @@ export class AuthService {
         ...input,
         password: hashedPassword,
       });
+
       return createdUser;
     } catch (error) {
       if (error?.errno === MysqlErrorCode.DuplicateEntry) {
@@ -96,5 +104,14 @@ export class AuthService {
 
   getCookieForLogOut() {
     return ['Refresh=; HttpOnly; Path=/; Max-Age=0'];
+  }
+
+  async promoteToAdmin(userId: number) {
+    const user = await this.usersService.findUserById(userId);
+
+    user.role = UserRole.ADMIN;
+    await this.usersService.saveUser(user);
+
+    return user;
   }
 }

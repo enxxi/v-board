@@ -8,15 +8,21 @@ import {
   Res,
   UseGuards,
   HttpCode,
+  Patch,
+  Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import RequestWithUser from './interface/requestWithUser.interface';
 import { Response, response } from 'express';
-import { LocalAuthenticationGuard } from './localAuthentication.guard';
-import JwtAuthGuard from './jwt-auth.guard';
-import JwtRefreshGuard from './jwt-refresh.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import JwtAuthGuard from './guards/jwt-auth.guard';
+import JwtRefreshGuard from './guards/jwt-refresh.guard';
+import FindOneParams from 'src/common/findOneParams';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/common/enums/role.enum';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -33,7 +39,7 @@ export class AuthController {
   }
 
   @HttpCode(200)
-  @UseGuards(LocalAuthenticationGuard)
+  @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Req() request: RequestWithUser, @Res() response: Response) {
     const { user } = request;
@@ -66,5 +72,12 @@ export class AuthController {
       request.user.id,
     );
     response.send({ accessToken });
+  }
+
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Patch('promote/:id')
+  async promoteToAdmin(@Param() { id }: FindOneParams) {
+    return await this.authService.promoteToAdmin(+id);
   }
 }
