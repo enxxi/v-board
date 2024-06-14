@@ -1,4 +1,5 @@
 import {
+  AfterUpdate,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -49,4 +50,28 @@ export class User {
 
   @OneToMany(() => Comment, (comment) => comment.author, { cascade: true })
   comments?: Comment[];
+
+  private static dataSource: any;
+  static setDataSource(dataSource) {
+    User.dataSource = dataSource;
+  }
+  @AfterUpdate()
+  async softDeleteRelatedEntities() {
+    if (this.deletedAt) {
+      const postRepository = User.dataSource.getRepository(Post);
+      const commentRepository = User.dataSource.getRepository(Comment);
+
+      const posts = await postRepository.find({
+        where: { author: { id: this.id } },
+      });
+      for (const post of posts) {
+        post.deletedAt = new Date();
+        await postRepository.save(post);
+
+        await commentRepository.softDelete({ post });
+      }
+
+      await commentRepository.softDelete({ author: { id: this.id } });
+    }
+  }
 }
