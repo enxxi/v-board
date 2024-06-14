@@ -8,6 +8,7 @@ import {
   ManyToOne,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -17,6 +18,9 @@ export class Comment {
 
   @Column({ nullable: false })
   content: string;
+
+  @Column({ default: 0 })
+  depth: number;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -33,6 +37,11 @@ export class Comment {
   @ManyToOne(() => User, (user) => user.comments)
   author: User;
 
-  @ManyToOne(() => Comment, (comment) => comment.id)
+  @ManyToOne(() => Comment, (comment) => comment.childComments, {
+    nullable: true,
+  })
   parentComment: Comment;
+
+  @OneToMany(() => Comment, (comment) => comment.parentComment)
+  childComments: Comment[];
 }
