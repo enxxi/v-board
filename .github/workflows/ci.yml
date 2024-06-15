@@ -1,0 +1,36 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'  # Node.js 20 사용
+    
+    - name: Login Dockerhub
+      env:
+        DOCKER_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
+        DOCKER_PASSWORD: ${{secrets.DOCKERHUB_PASSWORD}}
+      run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
+    - name: Generate Environment Variables File for Production
+      run: echo "${{secrets.PRODUCTION_ENV}}" > .production.env
+
+    - name: Build the Docker image
+      run: docker build -t v8board-api .
+    - name: taging
+      run: docker tag v8board-api:latest enxxi/v8board-api:latest
+    - name: Push to Dockerhub
+      run: docker push enxxi/v8board-api:latest
