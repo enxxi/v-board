@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersRepository } from './users.repository';
 import { ConfigService } from '@nestjs/config';
@@ -39,10 +39,7 @@ export class UsersService {
     if (user) {
       return user;
     }
-    throw new HttpException(
-      '해당 이메일의 유저가 없습니다.',
-      HttpStatus.NOT_FOUND,
-    );
+    throw new NotFoundException('해당 이메일의 유저가 없습니다.');
   }
 
   async getUserIfRefreshTokenMatches(refreshToken: string, userId: number) {

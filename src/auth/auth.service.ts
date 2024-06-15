@@ -1,16 +1,14 @@
 import {
-  HttpException,
-  HttpStatus,
+  BadRequestException,
+  ConflictException,
   Injectable,
-  NotFoundException,
-  Req,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { UsersRepository } from 'src/users/users.repository';
 import { MysqlErrorCode } from 'src/database/MysqlErrorCodes.enum';
 import JwtPayload from './interface/payload.interface';
 import { plainToClass } from 'class-transformer';
@@ -23,7 +21,6 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly userRepository: UsersRepository,
   ) {}
 
   async register(input: RegisterDto) {
@@ -40,15 +37,9 @@ export class AuthService {
       return createdUser;
     } catch (error) {
       if (error?.errno === MysqlErrorCode.DuplicateEntry) {
-        throw new HttpException(
-          '이미 존재하는 이메일입니다.',
-          HttpStatus.CONFLICT,
-        );
+        throw new ConflictException('이미 존재하는 이메일입니다.');
       }
-      throw new HttpException(
-        '회원가입에 실패하였습니다.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new InternalServerErrorException('회원가입에 실패하였습니다.');
     }
   }
 
@@ -85,20 +76,14 @@ export class AuthService {
       await this.verifyPassword(password, user.password);
       return plainToClass(User, user);
     } catch (error) {
-      throw new HttpException(
-        '이메일 혹은 비밀번호가 잘못되었습니다.',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('이메일 혹은 비밀번호가 잘못되었습니다.');
     }
   }
 
   private async verifyPassword(plainPassword, hashedPassword) {
     const isMatching = await bcrypt.compare(plainPassword, hashedPassword);
     if (!isMatching) {
-      throw new HttpException(
-        '이메일 혹은 비밀번호가 잘못되었습니다.',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('이메일 혹은 비밀번호가 잘못되었습니다.');
     }
   }
 
