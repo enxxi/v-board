@@ -8,12 +8,14 @@ import { Comment } from './entities/comment.entity';
 import CommentNotFoundException from './commentNotFound.exception';
 import { UpdateCommentDto } from './dto/updateComment.dto';
 import { UserRole } from 'src/common/enums/role.enum';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsService {
   constructor(
     private readonly commentsRepository: CommentsRepository,
     private readonly postsRepository: PostsRepository,
+    private readonly dataSource: DataSource,
   ) {}
 
   async createComment(postId: number, comment: CreateCommentDto, author: User) {
@@ -67,10 +69,24 @@ export class CommentsService {
     if (!comment) {
       throw new CommentNotFoundException(id);
     }
-
     this.checkAdminOrAuthorPermission(comment, user);
 
-    await this.softDeleteRecursive(comment);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await this.commentsRepository.softDeleteCommentWithRelations(
+        queryRunner,
+        id,
+      );
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   private checkAdminOrAuthorPermission(comment: Comment, user: User) {

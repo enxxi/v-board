@@ -126,8 +126,23 @@ export class PostsService {
     const post = await this.getPostDetail(id);
     this.checkAdminOrAuthorPermission(post, user);
 
-    await this.postsRepository.softDelete({ id });
-    await this.filesService.softDeleteFilesByPostId(id);
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await this.postsRepository.softDeletePostWithRelations(
+        queryRunner,
+        post.id,
+      );
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   private checkAdminPermission(category: string, role: string) {
@@ -155,9 +170,7 @@ export class PostsService {
       return result;
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(
-        '트랜잭션 처리 중 오류가 발생했습니다.',
-      );
+      throw error;
     } finally {
       await queryRunner.release();
     }

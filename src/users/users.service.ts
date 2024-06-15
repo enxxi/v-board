@@ -7,12 +7,14 @@ import * as bcrypt from 'bcrypt';
 import { RegisterDto } from 'src/auth/dto/register.dto';
 import { plainToClass } from 'class-transformer';
 import UserNotFoundException from './userNotFound.exception';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UsersRepository) private usersRepository: UsersRepository,
     private readonly configService: ConfigService,
+    private readonly dataSource: DataSource,
   ) {}
   async create(userData: RegisterDto) {
     const newUser = await this.usersRepository.create(userData);
@@ -78,10 +80,19 @@ export class UsersService {
   }
 
   async deleteUser(id: number) {
-    const user = await this.findUserById(id);
-    if (user) {
-      user.deletedAt = new Date();
-      await this.usersRepository.save(user);
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await this.usersRepository.softDeleteUserWithRelations(queryRunner, id);
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 }
