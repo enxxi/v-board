@@ -1,12 +1,13 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
-import JwtAuthGuard from 'src/auth/guards/jwt-auth.guard';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@UseGuards(JwtAuthGuard)
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  @ApiTags('posts')
+  @ApiOperation({ summary: '게시글 카테고리 목록 조회' })
   @Get()
   async getAllCategories() {
     return this.categoriesService.getAllCategories();
