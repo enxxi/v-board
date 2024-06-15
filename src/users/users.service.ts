@@ -20,6 +20,10 @@ export class UsersService {
     return newUser;
   }
 
+  async getUsers() {
+    return this.usersRepository.find();
+  }
+
   async findUserById(id: number) {
     const user = await this.usersRepository.findUserById(id);
     if (user) {
@@ -71,5 +75,13 @@ export class UsersService {
 
   async saveUser(user: User) {
     return this.usersRepository.save(user);
+  }
+
+  async deleteUser(id: number) {
+    const user = await this.findUserById(id);
+    if (user) {
+      user.deletedAt = new Date();
+      await this.usersRepository.save(user);
+    }
   }
 }

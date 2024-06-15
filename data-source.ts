@@ -1,9 +1,8 @@
 import { ConfigService } from '@nestjs/config';
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 
-config();
+config({ path: '.production.env' });
 const configService = new ConfigService();
 
 export default new DataSource({
