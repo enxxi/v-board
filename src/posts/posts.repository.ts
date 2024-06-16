@@ -31,6 +31,45 @@ export class PostsRepository extends Repository<Post> {
     });
   }
 
+  async softDeletePostWithRelations(
+    queryRunner: any,
+    postId: number,
+  ): Promise<void> {
+    await queryRunner.manager.softDelete(Post, postId);
+
+    await queryRunner.query(
+      `
+      UPDATE comment SET deletedAt = NOW() WHERE postId = ?
+    `,
+      [postId],
+    );
+
+    await queryRunner.query(
+      `
+      UPDATE public_file SET deletedAt = NOW() WHERE postId = ?
+    `,
+      [postId],
+    );
+
+    const commentIds = (
+      await queryRunner.query(
+        `
+        SELECT id FROM comment WHERE postId = ?
+      `,
+        [postId],
+      )
+    ).map((comment: any) => comment.id);
+
+    if (commentIds.length > 0) {
+      await queryRunner.query(
+        `
+        UPDATE comment SET deletedAt = NOW() WHERE parentCommentId IN (?)
+      `,
+        [commentIds],
+      );
+    }
+  }
+
   private calculateDate(duration: string) {
     const now = new Date();
     switch (duration) {

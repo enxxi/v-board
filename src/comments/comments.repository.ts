@@ -28,4 +28,43 @@ export class CommentsRepository extends Repository<Comment> {
       relations: ['author', 'childComments'],
     });
   }
+
+  async softDeleteCommentWithRelations(
+    queryRunner: any,
+    commentId: number,
+  ): Promise<void> {
+    await queryRunner.manager.softDelete(Comment, commentId);
+
+    await queryRunner.query(
+      `
+      UPDATE comment SET deletedAt = NOW() WHERE parentCommentId = ?
+    `,
+      [commentId],
+    );
+
+    await this.updateParentComments(queryRunner, commentId);
+  }
+
+  async updateParentComments(
+    queryRunner: any,
+    parentId: number,
+  ): Promise<void> {
+    const comments = await queryRunner.query(
+      `
+      SELECT id FROM comment WHERE parentCommentId = ? AND deletedAt IS NULL
+      `,
+      [parentId],
+    );
+
+    for (const comment of comments) {
+      await queryRunner.query(
+        `
+        UPDATE comment SET deletedAt = NOW() WHERE id = ?
+      `,
+        [comment.id],
+      );
+      // 재귀함수 호출
+      await this.updateParentComments(queryRunner, comment.id);
+    }
+  }
 }

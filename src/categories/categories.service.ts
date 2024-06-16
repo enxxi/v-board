@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './category.entity';
 import { Repository } from 'typeorm';
@@ -17,9 +22,6 @@ export class CategoriesService {
     if (category) {
       return category;
     }
-    throw new HttpException(
-      '해당 id의 카테고리가 없습니다.',
-      HttpStatus.NOT_FOUND,
-    );
+    throw new NotFoundException('해당 id의 카테고리가 없습니다.');
   }
 }
