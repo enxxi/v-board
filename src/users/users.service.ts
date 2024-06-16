@@ -56,6 +56,8 @@ export class UsersService {
     if (isRefreshTokenMatching) {
       return plainToClass(User, user);
     }
+
+    return null;
   }
 
   async setCurrentRefreshToken(refreshToken: string, userId: number) {

@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
+import { AuthService } from '../auth.service';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import mockedConfigService from 'src/common/mocks/config.service';
 import mockedJwtService from 'src/common/mocks/jwt.service';
-import { RegisterDto } from './dto/register.dto';
+import { RegisterDto } from '../dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { MysqlErrorCode } from 'src/database/MysqlErrorCodes.enum';
