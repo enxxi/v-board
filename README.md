@@ -1,4 +1,4 @@
-## 브이에이트코프 기술 과제 \_ 이은석
+
 
 #### [인스턴스](http://ec2-3-36-78-152.ap-northeast-2.compute.amazonaws.com/)
 
